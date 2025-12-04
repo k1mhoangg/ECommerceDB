@@ -1,35 +1,31 @@
-IF OBJECT_ID('sp_TraCuuDonHangTheoDVVC', 'P') IS NOT NULL 
-    DROP PROCEDURE sp_TraCuuDonHangTheoDVVC;
+-- Tra cuu lich su mua hang
+IF OBJECT_ID('sp_TraCuuLichSuMuaHang', 'P') IS NOT NULL 
+    DROP PROCEDURE sp_TraCuuLichSuMuaHang;
 
--- 2. Tạo thủ tục mới
-CREATE PROCEDURE sp_TraCuuDonHangTheoDVVC
-    @TenDVVC NVARCHAR(50),
-    @TuNgay DATE,
-    @DenNgay DATE
+CREATE PROCEDURE sp_TraCuuLichSuMuaHang
+    @tu_khoa_ten NVARCHAR(200) -- Tìm kiếm theo tên người mua (gần đúng)
 AS
 BEGIN
     SELECT 
-        O.MaDonHang,
-        O.NgayDatHang,
-        O.TongTien,
-        O.TrangThaiDonHang,
-        C.Ten AS TenDonViVanChuyen,
-        S.MaVanDon
-    FROM Orders O
-    JOIN Shipment S ON O.MaDonHang = S.MaDonHang
-    JOIN Carrier C ON S.MaDVVC = C.MaDVVC
+        NM.ma_nguoi_mua,
+        NM.ten_hien_thi,
+        NM.so_dien_thoai,
+        DH.ma_don_hang,
+        DH.ngay_dat,
+        DH.tong_tien
+    FROM nguoi_mua NM
+    JOIN DonHang DH ON NM.ma_nguoi_mua = DH.ma_nguoi_mua
     WHERE 
-        C.Ten LIKE N'%' + @TenDVVC + N'%'
-        AND O.NgayDatHang BETWEEN @TuNgay AND @DenNgay
+        NM.ten_hien_thi LIKE '%' + @tu_khoa_ten + '%' -- Lọc theo tên
     ORDER BY 
-        O.NgayDatHang DESC;
+        DH.ngay_dat DESC; -- Sắp xếp đơn hàng mới nhất lên đầu
 END;
 
 -- Xóa thủ tục cũ nếu có
 IF OBJECT_ID('sp_ThongKeDoanhThuSanPham', 'P') IS NOT NULL 
     DROP PROCEDURE sp_ThongKeDoanhThuSanPham;
 
--- Tạo thủ tục
+-- Tạo thủ tục thống kê doanh thu sản phẩm
 CREATE PROCEDURE sp_ThongKeDoanhThuSanPham
     @Thang INT,                 -- Tháng cần xem báo cáo
     @Nam INT,                   -- Năm cần xem báo cáo
